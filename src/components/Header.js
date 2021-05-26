@@ -2,10 +2,9 @@ import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
-import Typography from '@material-ui/core/Typography'
 
 import { drawerWidth } from '../utils'
-import searchImg from './noun_Search_449332.png'
+import searchImg from '../assets/search.png'
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -63,7 +62,7 @@ function Header (props) {
             <Toolbar>
                 <div className={classes.search}>
                     <input className={classes.searchInput}></input>
-                    <img className={classes.searchImg} src={searchImg}></img>
+                    <img className={classes.searchImg} src={searchImg} alt="search"></img>
                 </div>
             </Toolbar>
         </AppBar>

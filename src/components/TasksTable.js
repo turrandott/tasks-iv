@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
+import React, { useEffect, useState } from 'react'
+import { makeStyles } from '@material-ui/core/styles'
+import Table from '@material-ui/core/Table'
+import TableBody from '@material-ui/core/TableBody'
+import TableCell from '@material-ui/core/TableCell'
 import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
+import TableHead from '@material-ui/core/TableHead'
+import TableRow from '@material-ui/core/TableRow'
 
 import { getTasks } from '../api'
 
@@ -16,8 +15,6 @@ const useStyles = makeStyles((theme) => ({
     },
     thead: {
         boxShadow: "inset 0px -10px 10px -10px rgba(94, 96, 109, 0.2)",
-        // paddingTop: theme.spacing(2),
-        // paddingBottom: theme.spacing(2),
     },
     divider: {
         backgroundColor: "rgb(226, 231, 234)",
@@ -31,63 +28,107 @@ const useStyles = makeStyles((theme) => ({
     headerCells: {
         paddingLeft: 0,
         paddingRight: 0,
-        // alignItems: "center"
     },
     title: {
         display: "inline-box",
         flexGrow: 1,
-        marginLeft: theme.spacing(2)
+        marginLeft: theme.spacing(2),
+        marginRight: theme.spacing(2)
     },
     titleId: {
         display: "inline-box",
         flexGrow: 1,
         textAlign: "center"
     },
-    status: {
+    priorityCell: {
         width: "10px",
         padding:"2px",
-        // backgroundColor: "red"
     },
-    statusCell: {
+    priority: {
         width: "5px",
         borderRadius:"2px",
-        // backgroundColor: "red"
+        height: "70px",
+    },
+    tableRow: {
+        height: "23px"
+    },
+    tableCell: {
+        height: "23px",
+        overflow: "hidden",
+        padding: "2px 16px 2px 16px",
+    },
+    statusName: {
+        borderRadius: "17px",
+        color: "#fff",
+        padding: "5px 10px",
+        textTransform: "lowercase",
+        whiteSpace: "nowrap",
+        fontSize: "12px"        
+    },
+    root: {
+        backgroundColor: "rgb(255, 255, 255)"
     }
 }))
 
-function createData(name, calories, fat, carbs, protein) {
-    return { name, calories, fat, carbs, protein };
-}
-
-const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-  createData('Cupcake', 305, 3.7, 67, 4.3),
-  createData('Gingerbread', 356, 16.0, 49, 3.9),
-];
-
-export default function TaskTable() {
-    const [tasks, setTasks] = useState([])
+export default function TaskTable(props) {
     const classes = useStyles()
+    
+    const [tasks, setTasks] = useState([])
+    const [fetchParams, setFetchParams] = useState({
+        isFetching: false,
+        top: Math.ceil(window.innerHeight / 75),
+        skip: 0
+    })
 
     useEffect(() => {
         const getData = async () => {
-            const data = await getTasks()
+            const data = await getTasks({
+                top: Math.ceil(window.innerHeight / 75),
+                skip: 0
+            })
             setTasks(data)
         }
-        
         getData()
     }, [])
 
-    const openTask = (task) => {
-        
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [])
+
+    useEffect(() => {
+        if (!fetchParams.isFetching) return; 
+
+        const getData = async () => {
+            const data = await getTasks(fetchParams)
+            setTasks(prevState => {
+                return [
+                    ...prevState,
+                    ...data
+                ]  
+            })
+        }
+
+        getData()
+    }, [fetchParams])
+
+    function handleScroll() {
+        if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.scrollHeight) return;
+  
+        setFetchParams(prevState => { return {
+            isFetching: true,
+            top: prevState.top,
+            skip: prevState.skip + prevState.top
+        }})
     }
 
-    console.log('tasks', tasks)
+    const getPriorityColor = id => {
+        const priorityColor = props.priorities.find((item) => item.id === id)
+        return priorityColor ? priorityColor.rgb : "#fff"
+    }
 
     return (
-        <TableContainer >
+        <TableContainer className={classes.root}>
             <Table className={classes.table} aria-label="simple table">
                 <TableHead className={classes.thead}>
                     <TableRow>
@@ -112,18 +153,23 @@ export default function TaskTable() {
                 </TableHead>
                 <TableBody>
                     {tasks.map((row) => (
-                        <TableRow key={row.id} onClick={openTask(row.id)}>
-                            <TableCell className={classes.status}>
-                            <div className={classes.statusCell} style={{backgroundColor: row.statusRgb}}></div>
+                        <TableRow 
+                            key={row.id} 
+                            onClick={e => props.openTask(row.id)} 
+                            className={classes.tableRow} 
+                            hover
+                        >
+                            <TableCell className={classes.priorityCell}>
+                                <div className={classes.priority} style={{backgroundColor: getPriorityColor(row.priorityId)}}></div>
                             </TableCell>
-                            <TableCell 
-                            // component="th" scope="row" align="right"
-                            >
-                                {row.id}
+                            <TableCell className={classes.tableCell}>{row.id}</TableCell>
+                            <TableCell align="left" className={classes.tableCell}>{row.name}</TableCell>
+                            <TableCell align="left" className={classes.tableCell}>
+                                <div className={classes.statusName} style={{backgroundColor: row.statusRgb}}>
+                                    {row.statusName}
+                                </div>
                             </TableCell>
-                            <TableCell align="left">{row.name}</TableCell>
-                            <TableCell align="left">{row.statusName}</TableCell>
-                            <TableCell align="left">{row.executorName}</TableCell>
+                            <TableCell align="left" className={classes.tableCell}>{row.executorName}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
