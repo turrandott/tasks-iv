@@ -1,3 +1,16 @@
+
+замечание по работе следующие:
+
+1.       Добавляются пустые комментарии;
+
+2.       Данные в заявке обновляются только после закрытия / открытия заявки;
+
+3.       Создается пустая заявка;  
+
+4.       После создания новой заявки она не появляется в таблице (только после перезагрузки)
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
